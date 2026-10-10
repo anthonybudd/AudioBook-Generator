@@ -161,7 +161,7 @@ import AudioPlayer from '@/AudioPlayer';
 
 const theme = useColorMode();
 watch(theme, (newVal: any) => localStorage.setItem('theme', newVal));
-onMounted(() => theme.value = localStorage.getItem('theme') === 'light' ? 'light' : 'dark');
+onMounted(() => theme.value = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light');
 
 GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 

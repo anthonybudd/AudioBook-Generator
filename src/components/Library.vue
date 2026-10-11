@@ -31,6 +31,7 @@ const emit = defineEmits(['onClickLibraryBook']);
 
 const onClickLibraryBook = (book: any) => emit('onClickLibraryBook', book);
 
+
 const books = ref([{
     id: 1,
     title: 'Security Analysis',
@@ -80,6 +81,12 @@ const books = ref([{
     cover: '/books/simulacra-and-simulation.jpg',
     file: '/books/simulacra-and-simulation.pdf',
 }]);
+
+
+books.value = books.value
+    .map(book => ({ ...book, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ sort, ...book }) => book);
 
 
 </script>

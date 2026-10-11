@@ -1,7 +1,7 @@
 import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
 
 interface AudioPlayerOptions {
-    // isGeneratingAudio: (generating: boolean) => void;
+    isGeneratingAudio: (generating: boolean) => void;
     isPlaying: (isPlaying: boolean) => void;
     onPlayNextPage: (page: number) => void;
 }
@@ -14,7 +14,7 @@ interface PageAudio {
 export default class AudioPlayer {
     private worker: Worker;
     private pdfDocument: PDFDocumentProxy | null = null;
-    private pageAudio: { [page: number]: PageAudio[]; } = {};
+    private pageAudio: { [page: number]: { [chunk: number]: PageAudio; }; } = {};
     options: AudioPlayerOptions;
     isPlaying: boolean = false;
 
@@ -32,7 +32,6 @@ export default class AudioPlayer {
         this.options.isPlaying(this.isPlaying);
         Object.values(this.pageAudio).forEach((audio: any) => {
             audio.forEach((audioElement: PageAudio) => {
-                // console.log(audioElement);
                 audioElement.element.pause();
             });
         });
@@ -44,42 +43,48 @@ export default class AudioPlayer {
     }
 
     startPlaying(page: number) {
+        if (this.isPlaying) return;
         if (!this.pageAudio[page]) return;
+
         this.isPlaying = true;
         this.options.isPlaying(this.isPlaying);
 
-        const audioElements = this.pageAudio[page].map((audio: PageAudio) => audio.element);
+        const getAudioElements = (page: number) => Object.values(this.pageAudio[page]).map((audio: PageAudio) => audio.element);
 
-        const playAudioChunksSequentially = (audioElements: HTMLAudioElement[], index: number = 0) => {
+        const playAudioChunksSequentially = (index: number = 0) => {
+            const audioElements = getAudioElements(page);
             if (index >= audioElements.length) return;
             const audioEl = audioElements[index];
             if (!audioEl) return;
             audioEl.play();
+
             const endedHandler = () => {
+                const audioElements = getAudioElements(page);
+
                 if (index === audioElements.length - 1) {
-                    console.log('ended');
-                    console.log(page + 1);
                     this.play(page + 1);
+                    audioEl.removeEventListener('ended', endedHandler);
                     this.options.onPlayNextPage(page + 1);
+                    this.isPlaying = false;
+                    this.options.isPlaying(this.isPlaying);
                     return;
+                } else {
+                    playAudioChunksSequentially(index + 1);
                 }
             };
             audioEl.addEventListener('ended', endedHandler);
-            audioEl.removeEventListener('ended', endedHandler);
-            playAudioChunksSequentially(audioElements, index + 1);
         };
 
-        playAudioChunksSequentially(audioElements);
+        playAudioChunksSequentially(0);
     }
 
     async generateAudio(page: number) {
+        this.options.isGeneratingAudio(true);
         return new Promise((resolve, reject) => {
             if (!this.pdfDocument) return reject(new Error('PDF document not found'));
             this.pdfDocument.getPage(page).then((pdfPage: PDFPageProxy) => {
                 pdfPage.getTextContent().then((textContent: any) => {
                     let text = textContent.items.map((item: any) => item.str).join(' ');
-                    console.log(text);
-
                     this.pageAudio[page] = [];
 
                     // Split the text into smaller chunks
@@ -121,19 +126,14 @@ export default class AudioPlayer {
 
                             if (!this.pageAudio[page]) this.pageAudio[page] = [];
 
-                            const audioEl = document.createElement('audio');
-                            audioEl.controls = true;
-                            audioEl.src = audio;
-                            audioEl.classList.add('hidden');
-                            document.body.appendChild(audioEl);
+                            const element = document.createElement('audio');
+                            element.controls = true;
+                            element.src = audio;
+                            element.classList.add('hidden');
+                            document.body.appendChild(element);
 
-                            this.pageAudio[page][index] = {
-                                audio,
-                                element: audioEl,
-                            };
+                            this.pageAudio[page][index] = { audio, element };
                             resolve(true);
-                            // this.options.isGeneratingAudio(false);
-                            // this.startPlaying(page);
 
                             if (index === chunks - 1) {
                                 this.worker.removeEventListener("message", handleChunkComplete);

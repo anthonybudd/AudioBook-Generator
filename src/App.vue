@@ -1,43 +1,60 @@
 <template>
-    <div class="container max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-28 space-y-6">
+    <div class="container max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-        <div class="flex flex-col items-center justify-center pt-10 gap-2">
-            <h1 class="text-4xl font-bold text-center">Audiobook Generator</h1>
-            <p class="text-lg text-gray-600 text-center max-w-xl mb-6">
-                This app uses Kokoro.js to generate speech client-side in the browser.
-                <br />
-                Upload a PDF or try one of the books in the library.
-                <br />
-                Built by <a
-                    href="https://anthonybudd.io"
-                    target="_blank"
-                    class="text-blue-600 hover:text-blue-700"
-                >Anthony Budd</a>
-            </p>
+        <!-- <Header /> -->
 
-            <input
-                ref="fileInput"
-                type="file"
-                accept="application/pdf,.pdf"
-                class="sr-only"
-                @change="onFileSelected"
-            />
-            <Button
-                type="button"
-                :disabled="isLoading"
-                size="lg"
-                @click="openFilePicker"
-            >
-                <FileUp class="size-5" />
-                {{ fileName ? 'Choose another PDF' : 'Select PDF' }}
-            </Button>
-            <p
-                v-if="errorMessage"
-                class="text-sm text-destructive"
-                role="alert"
-            >
-                {{ errorMessage }}
-            </p>
+        <div
+            v-if="!file"
+            class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center justify-center pt-10 h-auto md:h-[70vh]"
+        >
+            <div class="flex flex-col justify-center gap-4">
+                <h1 class="text-7xl text-center md:text-left">
+                    PDF to <br class="hidden md:block" /> AudioBook
+                </h1>
+                <h3 class="text-xl text-gray-600 max-w-xl text-center md:text-left">
+                    By <a
+                        href="https://anthonybudd.io"
+                        target="_blank"
+                        class="text-blue-600 hover:text-blue-700"
+                    >Anthony Budd</a>
+                </h3>
+            </div>
+
+            <div class="flex flex-col items-center justify-center gap-4">
+                <p class="text-lg text-gray-600 text-center md:text-right max-w-xl">
+                    This app uses Kokoro.js to generate speech <u>client-side</u> in the browser. Upload a PDF or try one of the books in the library.
+                </p>
+                <div class="flex items-center gap-2 justify-center md:justify-end w-full">
+                    <Button
+                        type="button"
+                        :disabled="isLoading"
+                        size="lg"
+                        class="rounded-full"
+                        @click="openFilePicker"
+                    >
+                        <FileUp class="size-5" />
+                        {{ fileName ? 'Choose another PDF' : 'Select PDF' }}
+                    </Button>
+                    <input
+                        ref="fileInput"
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        class="sr-only"
+                        @change="onFileSelected"
+                    />
+                    <Button
+                        type="button"
+                        :disabled="isLoading"
+                        size="lg"
+                        variant="outline"
+                        class="rounded-full"
+                        @click="openGitHub"
+                    >
+                        <GitHub class="size-5" />
+                        Source Code
+                    </Button>
+                </div>
+            </div>
         </div>
 
         <Library
@@ -72,7 +89,10 @@
                 class="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-10 h-10 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
                 aria-label="Play/Pause"
             >
-                <span v-if="!isPlaying">
+                <span v-if="isGeneratingAudio">
+                    <Loader2 class="w-6 h-6 animate-spin" />
+                </span>
+                <span v-else-if="!isPlaying">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         class="w-6 h-6"
@@ -150,15 +170,16 @@
 <script setup lang="ts">
 import { useColorMode } from '@vueuse/core';
 import { Toaster } from 'vue-sonner';
-import { FileUp } from 'lucide-vue-next';
+import { FileUp, Loader2 } from 'lucide-vue-next';
 // import { FileUp, Loader2, Settings, Download } from 'lucide-vue-next';
+import GitHub from '@/components/GitHub.svg';
+import Header from '@/components/Header.vue';
 import { computed, onBeforeUnmount, onMounted, ref, nextTick, watch, type ComponentPublicInstance } from 'vue';
 import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { Button } from '@/components/ui/button';
 import Library from '@/components/Library.vue';
 import AudioPlayer from '@/AudioPlayer';
-
 
 const theme = useColorMode();
 watch(theme, (newVal: any) => localStorage.setItem('theme', newVal));
@@ -177,12 +198,15 @@ const onErrorReceived = (e: ErrorEvent) => {
 
 worker.addEventListener("error", onErrorReceived);
 
+
+
 const audioPlayer = new AudioPlayer(worker, {
-    // isGeneratingAudio: (generating: boolean) => {
-    //     isGeneratingAudio.value = generating;
-    // },
+    isGeneratingAudio: (generating: boolean) => {
+        isGeneratingAudio.value = generating;
+    },
     isPlaying: (playing: boolean) => {
         isPlaying.value = playing;
+        isGeneratingAudio.value = false;
     },
     onPlayNextPage: (page: number) => {
         nextTick(() => {
@@ -213,7 +237,7 @@ const pageCount = ref(0);
 const currentPage = ref(1);
 const documentId = ref(0);
 const isLoading = ref(false);
-// const isGeneratingAudio = ref(false);
+const isGeneratingAudio = ref(false);
 const isPlaying = ref(false);
 const statusMessage = ref('');
 const errorMessage = ref('');
@@ -228,6 +252,12 @@ let requestSerial = 0;
 let scrollFrame = 0;
 let seekLock = 0;
 let pdfDocument: PDFDocumentProxy | null = null;
+
+const openGitHub = () => {
+    window.open('https://github.com/anthonybudd/pdf-to-audiobook', '_blank');
+};
+
+const show = ref(true);
 
 onMounted(() => {
     window.addEventListener('scroll', scheduleCurrentPageUpdate, { passive: true });

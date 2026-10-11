@@ -110,11 +110,15 @@ export default class AudioPlayer {
                     if (current.length > 0) chunks.push(current);
                     for (let i = 0; i < chunks.length; i++) {
                         const chunk = chunks[i];
+
+                        // Check for split words (e.g., "he- llo") and merge them
+                        let sanitizedChunk = chunk.replace(/(\w+)-\s+(\w+)/g, '$1$2');
+
                         this.worker.postMessage({
                             page,
                             index: i,
                             chunks: chunks.length,
-                            text: chunk,
+                            text: sanitizedChunk,
                             voice: 'af_heart',
                             type: 'generate',
                         });

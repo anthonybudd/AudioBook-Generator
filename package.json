@@ -19,7 +19,7 @@
     "kokoro-js": "^1.2.1",
     "lodash": "^4.17.21",
     "lucide-vue-next": "^0.562.0",
-    "pdfjs-dist": "^6.4.299",
+    "pdfjs-dist": "6.3.289",
     "reka-ui": "^2.7.0",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",

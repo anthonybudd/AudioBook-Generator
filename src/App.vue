@@ -9,7 +9,7 @@
                 Upload a PDF or try one of the books in the library.
                 <br />
                 Built by <a
-                    href="https://github.com/anthonybudd"
+                    href="https://anthonybudd.io"
                     target="_blank"
                     class="text-blue-600 hover:text-blue-700"
                 >Anthony Budd</a>
@@ -48,7 +48,7 @@
         <div
             v-if="pageCount"
             ref="pagesRoot"
-            class="mx-auto flex w-full max-w-2xl flex-col gap-6"
+            class="mx-auto flex w-full max-w-2xl flex-col gap-6 pt-8"
         >
             <figure
                 v-for="page in pageCount"
@@ -150,9 +150,10 @@
 <script setup lang="ts">
 import { useColorMode } from '@vueuse/core';
 import { Toaster } from 'vue-sonner';
-import { FileUp, Loader2, Settings, Download } from 'lucide-vue-next';
+import { FileUp } from 'lucide-vue-next';
+// import { FileUp, Loader2, Settings, Download } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, nextTick, watch, type ComponentPublicInstance } from 'vue';
-import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy, type PDFPageProxy } from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions, type PDFDocumentProxy } from 'pdfjs-dist';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { Button } from '@/components/ui/button';
 import Library from '@/components/Library.vue';

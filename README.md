@@ -7,7 +7,7 @@ This demo will allow you to create an audiobook from any PDF. Pick a PDF from th
 This demo **does not use** any third-paty Ai platforms like OpenAI, Anthropic or ElevenLabs, all of the audio is generated locally inside your browser window.
 
 
-| <a href="https://audiobook-generator.anthonybudd.io/"><img width="400" src="https://raw.githubusercontent.com/anthonybudd/anthonybudd/master/img/audiobook-generator-screenshot.png"> <br/>Live Demo: audiobook-generator.AnthonyBudd.io/</a> | <a href="https://youtu.be/t39svoJohkg"><img width="400" src="https://raw.githubusercontent.com/anthonybudd/anthonybudd/master/img/audiobook-generator-yt-embed.png"> <br/>Video: YouTube.com/watch?v=t39svoJohkg</a> |
+| <a href="https://audiobook-generator.anthonybudd.io/"><img width="400" src="https://raw.githubusercontent.com/anthonybudd/anthonybudd/master/img/audiobook-generator-screenshot.png"> <br/>Live Demo: audiobook-generator.AnthonyBudd.io/</a> | <a href="https://youtu.be/6Watw5MOYbk"><img width="400" src="https://raw.githubusercontent.com/anthonybudd/anthonybudd/master/img/audiobook-generator-yt-embed.png"> <br/>Video: YouTube.com/watch?v=6Watw5MOYbk</a> |
 | -- | -- |
 
 ### Local Set-up
